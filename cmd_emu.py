@@ -13,23 +13,23 @@ def main():
             args = parts[1:]
 
             if command == "ls":
-                print('\n', "ls", *args)
+                print("ls", *args)
 
             elif command == "cd":
-                print('\n', "cd", *args)
+                print("cd", *args)
 
             elif command == "exit":
                 if args:
-                    print('\n', "ERROR: 'exit' command does not take any arguments")
+                    print("ERROR: 'exit' command does not take any arguments!")
                 else:
-                    print('\n', "Exiting program")
+                    print("Exiting program")
                     break
 
             else:
-                print(f"\nERROR: Unknown command '{command}'")
+                print(f"ERROR: Unknown command '{command}'")
 
         except KeyboardInterrupt:
-            print('\n', "Exiting program")
+            print("\nExiting program")
             break
 
 
