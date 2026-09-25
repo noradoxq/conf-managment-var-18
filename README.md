@@ -73,7 +73,8 @@ python cmd_emu.py
 ├── src/
 │   └── main.py
 ├── tests/
+│   └── .gitkeep
 ├── .gitignore
-├── Makefile
+├── cmd_emu.py
 └── README.md
 ```
