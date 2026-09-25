@@ -29,7 +29,7 @@ def main():
                 print(f"ERROR: Unknown command '{command}'")
 
         except KeyboardInterrupt:
-            print("\nExiting program")
+            print("Exiting program")
             break
 
 

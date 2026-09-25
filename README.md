@@ -70,10 +70,12 @@ python cmd_emu.py
 
 ```text
 .
+-/
 ├── src/
-│   └── main.py
+│   └── cmd_emu.py
 ├── tests/
+│   └── .gitkeep
 ├── .gitignore
-├── Makefile
-└── README.md
+├── README.md
+└── run.bat
 ```
