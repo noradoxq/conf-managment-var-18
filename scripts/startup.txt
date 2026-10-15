@@ -1,0 +1,6 @@
+ls
+# comment
+# ls
+cd home
+ls test.txt
+exit

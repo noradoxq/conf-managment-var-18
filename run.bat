@@ -1,3 +1,6 @@
-#!/bin/bash
+@echo off
+chcp 65001 > nul
 
-python3 src/cmd_emu.py
+python src\cmd_emu.py --vfs ".\vfs" --script ".\scripts\startup.txt"
+
+pause
