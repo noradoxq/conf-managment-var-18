@@ -1,9 +1,9 @@
 import argparse
 
+from vfs import VFS
 
-def execute_command(user_input):
-    """главная функция с коммандами."""
 
+def execute_command(user_input, vfs):
     if not user_input.strip():
         return False
 
@@ -11,28 +11,73 @@ def execute_command(user_input):
     command = parts[0]
     args = parts[1:]
 
-    if command == "ls":
-        print("ls", *args)
+    try:
+        if command == "ls":
+            print("ls", *args)
+        
+        elif command == "cd":
+            print("cd", *args)
 
-    elif command == "cd":
-        print("cd", *args)
+        elif command == "pwd":
+            print(vfs.pwd())
 
-    elif command == "exit":
-        if args:
-            print("ERROR: 'exit' command does not take any arguments!")
+        elif command == "vfs-save":
+            handle_vfs_save(args, vfs)
+
+        elif command == "exit":
+            if args:
+                print("ERROR: 'exit' command does not take any arguments!")
+            else:
+                print("Exiting program")
+                return True
+
         else:
-            print("Exiting program")
-            return True
+            print(f"ERROR: Unknown command '{command}'")
 
-    else:
-        print(f"ERROR: Unknown command '{command}'")
+    except (OSError, ValueError) as error:
+        print(f"ERROR: {error}")
 
     return False
 
 
-def execute_script(script_path, vfs_name):
-    """выполняет команды из startup.txt"""
+def handle_ls(args, vfs):
+    long_format = "-l" in args
+    paths = [arg for arg in args if arg != "-l"]
 
+    if len(paths) > 1:
+        print("ERROR: 'ls' accepts at most one path!")
+        return
+
+    path = paths[0] if paths else "."
+    entries = vfs.list_dir(path)
+
+    if long_format:
+        for entry in entries:
+            print(entry)
+    else:
+        print(*entries)
+
+
+def handle_cd(args, vfs):
+    if len(args) > 1:
+        print("ERROR: 'cd' accepts at most one path!")
+        return
+
+    path = args[0] if args else "/"
+    vfs.change_dir(path)
+    print(f"Current directory: {vfs.pwd()}")
+
+
+def handle_vfs_save(args, vfs):
+    if len(args) != 1:
+        print("ERROR: Usage: vfs-save <path>")
+        return
+
+    vfs.save(args[0])
+    print(f"VFS saved to '{args[0]}'")
+
+
+def execute_script(script_path, vfs_name, vfs):
     try:
         with open(script_path, "r", encoding="utf-8") as script:
             for line in script:
@@ -43,15 +88,13 @@ def execute_script(script_path, vfs_name):
 
                 print(f"{vfs_name}$ {line}")
 
-                should_exit = execute_command(line)
+                if execute_command(line, vfs):
+                    return True
 
-                if should_exit:
-                    break
-
-    except FileNotFoundError:
-        print(f"ERROR: Startup script '{script_path}' not found!")
-    except OSError as error:
+    except (OSError, UnicodeError) as error:
         print(f"ERROR: Cannot read startup script: {error}")
+
+    return False
 
 
 def parse_arguments():
@@ -76,7 +119,6 @@ def parse_arguments():
 
 def main():
     args = parse_arguments()
-
     vfs_name = "my_vfs"
 
     print("=== Emulator parameters ===")
@@ -84,24 +126,23 @@ def main():
     print(f"Script path: {args.script}")
     print("===========================")
 
-    execute_script(args.script, vfs_name)
+    try:
+        vfs = VFS(args.vfs)
+    except (OSError, ValueError) as error:
+        print(f"ERROR: Cannot load VFS: {error}")
+        return
+
+    if execute_script(args.script, vfs_name, vfs):
+        return
 
     while True:
         try:
             user_input = input(f"\n{vfs_name}$ ")
 
-            if not user_input.strip():
-                continue
-
-            should_exit = execute_command(user_input)
-
-            if should_exit:
+            if execute_command(user_input, vfs):
                 break
 
-        except KeyboardInterrupt:
-            print("\nExiting program")
-            break
-        except EOFError:
+        except (KeyboardInterrupt, EOFError):
             print("\nExiting program")
             break
 
