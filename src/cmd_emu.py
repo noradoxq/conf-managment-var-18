@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from vfs import VFS
 
@@ -6,37 +7,34 @@ from vfs import VFS
 def execute_command(user_input, vfs):
     if not user_input.strip():
         return False
-
     parts = user_input.split()
     command = parts[0]
     args = parts[1:]
-
     try:
         if command == "ls":
-            print("ls", *args)
-        
+            handle_ls(args, vfs)
         elif command == "cd":
-            print("cd", *args)
-
+            handle_cd(args, vfs)
         elif command == "pwd":
             print(vfs.pwd())
-
         elif command == "vfs-save":
             handle_vfs_save(args, vfs)
-
+        elif command == "rev":
+            handle_rev(args, vfs)
+        elif command == "head":
+            handle_head(args, vfs)
+        elif command == "clear":
+            handle_clear(args)
         elif command == "exit":
             if args:
                 print("ERROR: 'exit' command does not take any arguments!")
             else:
                 print("Exiting program")
                 return True
-
         else:
             print(f"ERROR: Unknown command '{command}'")
-
     except (OSError, ValueError) as error:
         print(f"ERROR: {error}")
-
     return False
 
 
@@ -66,6 +64,61 @@ def handle_cd(args, vfs):
     path = args[0] if args else "/"
     vfs.change_dir(path)
     print(f"Current directory: {vfs.pwd()}")
+
+def handle_rev(args, vfs):
+    if len(args) != 1:
+        print("ERROR: Usage: rev <file>")
+        return
+
+    content = vfs.read_file(args[0]).decode("utf-8")
+
+    for line in content.splitlines():
+        print(line[::-1])
+
+
+def handle_head(args, vfs):
+    line_count = 10
+
+    if not args:
+        print("ERROR: Usage: head [-n count] <file>")
+        return
+
+    if args[0] == "-n":
+        if len(args) != 3:
+            print("ERROR: Usage: head -n <count> <file>")
+            return
+
+        try:
+            line_count = int(args[1])
+        except ValueError:
+            print("ERROR: Line count must be an integer")
+            return
+
+        if line_count < 0:
+            print("ERROR: Line count cannot be negative")
+            return
+
+        file_path = args[2]
+    else:
+        if len(args) != 1:
+            print("ERROR: Usage: head [-n count] <file>")
+            return
+
+        file_path = args[0]
+
+    content = vfs.read_file(file_path).decode("utf-8")
+    lines = content.splitlines()
+
+    for line in lines[:line_count]:
+        print(line)
+
+
+def handle_clear(args):
+    if args:
+        print("ERROR: 'clear' does not take arguments!")
+        return
+
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 def handle_vfs_save(args, vfs):

@@ -182,3 +182,13 @@ class VFS:
                 self._write_children(child, child_path)
             else:
                 child_path.write_bytes(child.content)
+
+    def read_file(self, path: str) -> bytes:
+        node = self.resolve(path)
+
+        if node.is_dir:
+            raise IsADirectoryError(
+                f"'{path}' is a directory, not a file"
+            )
+
+        return node.content
