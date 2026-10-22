@@ -1,27 +1,27 @@
+
 ls
 ls -l
-pwd
-
 # exit
-# ls
-pwd
+ls /data
+ls one two
 
+pwd
 cd /
-pwd
-cd home
-cd projects
-pwd
+cd ..
+cd /data
+cd one two
 
-ls
-ls test.txt
-ls missing.txt
-ls app.py
+rev readme.txt
+rev
+rev missing.txt
 
-cd missing_folder
-unknown_command
-cd home extra
+head readme.txt
+head -n 3 readme.txt
+head -n abc readme.txt
+head -n -1 readme.txt
+head missing.txt
+head
 
-cd /
-pwd
-ls
+clear extra
+
 exit
