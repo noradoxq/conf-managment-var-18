@@ -24,4 +24,26 @@ head
 
 clear extra
 
+pwd
+ls
+
+cp readme.txt readme_copy.txt
+ls
+head readme_copy.txt
+
+cp missing.txt copy.txt
+cp readme.txt
+cp readme.txt readme_copy.txt
+
+rm readme_copy.txt
+ls
+
+rm missing.txt
+rm
+rm readme.txt extra.txt
+
+rm -r /backup
+rm -r /missing
+
+ls
 exit

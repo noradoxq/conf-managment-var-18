@@ -3,6 +3,19 @@ import os
 
 from vfs import VFS
 
+DEFAULT_HEAD_LINES = 10
+
+MAX_PATHS = 1
+MAX_ARGUMENTS = 1
+REV_ARGUMENTS = 1
+HEAD_ARGUMENTS = 1
+HEAD_N_ARGUMENTS = 3
+CP_ARGUMENTS = 2
+VFS_SAVE_ARGUMENTS = 1
+
+MIN_LINE_COUNT = 0
+
+
 
 def execute_command(user_input, vfs):
     if not user_input.strip():
@@ -10,39 +23,44 @@ def execute_command(user_input, vfs):
     parts = user_input.split()
     command = parts[0]
     args = parts[1:]
+    handlers = {
+        "ls": lambda: handle_ls(args, vfs),
+        "cd": lambda: handle_cd(args, vfs),
+        "pwd": lambda: print(vfs.pwd()),
+        "vfs-save": lambda: handle_vfs_save(args, vfs),
+        "rev": lambda: handle_rev(args, vfs),
+        "head": lambda: handle_head(args, vfs),
+        "clear": lambda: handle_clear(args),
+        "rm": lambda: handle_rm(args, vfs),
+        "cp": lambda: handle_cp(args, vfs),
+        "exit": lambda: handle_exit(args),
+    }
     try:
-        if command == "ls":
-            handle_ls(args, vfs)
-        elif command == "cd":
-            handle_cd(args, vfs)
-        elif command == "pwd":
-            print(vfs.pwd())
-        elif command == "vfs-save":
-            handle_vfs_save(args, vfs)
-        elif command == "rev":
-            handle_rev(args, vfs)
-        elif command == "head":
-            handle_head(args, vfs)
-        elif command == "clear":
-            handle_clear(args)
-        elif command == "exit":
-            if args:
-                print("ERROR: 'exit' command does not take any arguments!")
-            else:
-                print("Exiting program")
-                return True
-        else:
+        handler = handlers.get(command)
+        if handler is None:
             print(f"ERROR: Unknown command '{command}'")
+        else:
+            return handler() is True
     except (OSError, ValueError) as error:
         print(f"ERROR: {error}")
     return False
+
+
+def handle_exit(args):
+    if args:
+        print("ERROR: 'exit' command does not take any arguments!")
+        return False
+
+    print("Exiting program")
+    return True
+
 
 
 def handle_ls(args, vfs):
     long_format = "-l" in args
     paths = [arg for arg in args if arg != "-l"]
 
-    if len(paths) > 1:
+    if len(paths) > MAX_PATHS:
         print("ERROR: 'ls' accepts at most one path!")
         return
 
@@ -57,7 +75,7 @@ def handle_ls(args, vfs):
 
 
 def handle_cd(args, vfs):
-    if len(args) > 1:
+    if len(args) > MAX_ARGUMENTS:
         print("ERROR: 'cd' accepts at most one path!")
         return
 
@@ -66,7 +84,7 @@ def handle_cd(args, vfs):
     print(f"Current directory: {vfs.pwd()}")
 
 def handle_rev(args, vfs):
-    if len(args) != 1:
+    if len(args) != REV_ARGUMENTS:
         print("ERROR: Usage: rev <file>")
         return
 
@@ -77,14 +95,14 @@ def handle_rev(args, vfs):
 
 
 def handle_head(args, vfs):
-    line_count = 10
+    line_count = DEFAULT_HEAD_LINES
 
     if not args:
         print("ERROR: Usage: head [-n count] <file>")
         return
 
     if args[0] == "-n":
-        if len(args) != 3:
+        if len(args) != HEAD_N_ARGUMENTS:
             print("ERROR: Usage: head -n <count> <file>")
             return
 
@@ -94,13 +112,13 @@ def handle_head(args, vfs):
             print("ERROR: Line count must be an integer")
             return
 
-        if line_count < 0:
+        if line_count < MIN_LINE_COUNT:
             print("ERROR: Line count cannot be negative")
             return
 
         file_path = args[2]
     else:
-        if len(args) != 1:
+        if len(args) != HEAD_ARGUMENTS:
             print("ERROR: Usage: head [-n count] <file>")
             return
 
@@ -120,9 +138,34 @@ def handle_clear(args):
 
     os.system("cls" if os.name == "nt" else "clear")
 
+def handle_rm(args, vfs):
+    recursive = False
+
+    if args and args[0] == "-r":
+        recursive = True
+        args = args[1:]
+
+    if len(args) != REV_ARGUMENTS:
+        print("ERROR: Usage: rm [-r] <path>")
+        return
+
+    try:
+        vfs.remove(args[0], recursive=recursive)
+    except (OSError, ValueError) as error:
+        print(f"ERROR: {error}")
+
+def handle_cp(args, vfs):
+    if len(args) != CP_ARGUMENTS:
+        print("ERROR: Usage: cp <source> <destination>")
+        return
+
+    try:
+        vfs.copy_file(args[0], args[1])
+    except (OSError, ValueError) as error:
+        print(f"ERROR: {error}")
 
 def handle_vfs_save(args, vfs):
-    if len(args) != 1:
+    if len(args) != VFS_SAVE_ARGUMENTS:
         print("ERROR: Usage: vfs-save <path>")
         return
 
